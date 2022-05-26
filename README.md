@@ -33,4 +33,29 @@ Here, we describe how to reproduce the results presented in the paper.
 
 3. **Synthetic image dataset.** The `./experiments/crosses/` folder contains the code to reproduce the results in Sec. 4.2. of the paper. To reproduce Fig. 2, first run `./experiments/crosses/power_m.py` and `./experiments/crosses/power_sigma.py`, and then run the notebook `./experiments/crosses/figures.ipynb`. Figures should be saved in the `./figures/crosses/` folder.
 
-4. **Real image dataset**. The `./experiments/BBBC041/` folder contains the code to reproduce the results in Sec. 4.3. For ease of reproducibility, `./experiments/BBBC041/pretrained_model` contains the pretrained model used in the paper, and `./experiments/BCC041/train.py` contain the code used to train the model. To reproduce Fig. 3 using the pretrained model included in this archive, run `./experiments/BBBC041/explain.py` to generate explanations for the true positive test images. Then, run the notebook `./experiments/BBBC041/figures.ipynb`. Figures should be saved in the `./figures/BBBC041/` folder.
+4. **Real image dataset.** The `./experiments/BBBC041/` folder contains the code to reproduce the results in Sec. 4.3. For ease of reproducibility, `./experiments/BBBC041/pretrained_model` contains the pretrained model used in the paper, `./experiments/BBBC041/train.py` contains the code used to train the model, and the `./experiments/BBBC04/demo/` folder contains the image with the respective explanations used in the paper. To reproduce Fig. 3 using the pretrained model included in this archive, simply run the notebook `./experiments/BBBC041/figures.ipynb`. Figures should be saved in the `./figures/BBBC041/` folder. To reproduce the entire process followed in this experiment:
+
+    0. **Download the data.** We use the preprocessed dataset made available by the authors of _"Fast Hierchical Games for Image Explanations"_ at [https://zenodo.org/record/5914342#.Yo6MF5PMJhE](https://zenodo.org/record/5914342#.Yo6MF5PMJhE). The `./experiments/BBBC041/data/` folder should be structured as follows:
+
+        ```bash
+        experiments/BBBC041/
+        ├── data
+        │   ├── trophozoite
+        │   │   ├── train
+        │   │   │   ├── 0
+        |   |   |   └── 1
+        |   |   └── val
+        |   |       ├── 0
+        |   |       └── 1
+        |   ├── test_cropped.json
+        |   └── trainig.json
+        ├── ...
+        ```
+    
+    1. **Train the model.** Run `./experiments/BBBC041/train.py` to train the model.
+
+    2. **Find true positive predictions.** Run `./experiments/BBBC041/true_positive.py` to find the true positive predictions of the model on the validation set.
+
+    3. **Compute the reference value.** Run `./experiments/BBBC041/compute_reference.py` to compute the reference value used to mask features when explaining predictions with h-Shap.
+
+    4. **Explain predictions.** Run `./experiments/BBBCO41/explain.py` to explain the predictions of the model on the true positive predictions in the validation set.

@@ -1,8 +1,6 @@
 **/**/__pycache__
 env/
 experiments/crosses/data
-experiments/BBBC041/data/trophozoite
-experiments/BBBC041/data/test_cropped.json
-experiments/BBBC041/data/training.json
-experiments/BBBC041/explanations/*.pkl
+experiments/BBBC041/data/
+experiments/BBBC041/explanations/
 figures
