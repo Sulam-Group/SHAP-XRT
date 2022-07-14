@@ -1,6 +1,6 @@
-# Source code for "From Shapley back to Pearson: Hypothesis Testing Via the Shapley Value"
+# _"From Shapley back to Pearson: Hypothesis Testing Via the Shapley Value"_
 
-This is the source code for the paper "From Shapley back to Pearson: Hypothesis Testing Via the Shapley Value". The source code will be made publicly available in a non-anonymized repository on GitHub after the review process.
+This repository contains the source code to reproduce the experiments presented in the paper _"From Shapley back to Pearson: Hypothesis Testing Via the Shapley Value"_.
 
 ## Instructions to reproduce results
 
