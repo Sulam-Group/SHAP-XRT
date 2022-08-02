@@ -1,8 +1,10 @@
+import os
 import torch
 from torch import Tensor
 from torch.utils.data import Dataset
 from torch.distributions import MultivariateNormal
-from typing import Tuple
+from torchvision.datasets import ImageFolder
+from typing import Tuple, Callable, Optional
 
 
 def signal(d: int) -> Tensor:
@@ -38,7 +40,7 @@ def noise(d: int, sigma: float) -> MultivariateNormal:
     return noise
 
 
-class Crosses(Dataset):
+class CrossesDataset(Dataset):
     """
     A class for generating the synthetic image dataset described in Sec. 4.2 of the paper.
     """
@@ -220,4 +222,71 @@ class BooleanDataset(Dataset):
         R = self._noise.sample((M, len(not_C)))
         x = x.repeat(M, 1)
         x[:, list(not_C)] = R
+        return x
+
+
+class BBBC041Dataset(ImageFolder):
+    """
+    A class to load the BBBC041 dataset used in Sec. 4.2 of the paper.
+    """
+
+    def __init__(
+        self,
+        root: str,
+        ref: Optional[Tensor] = None,
+        transform: Optional[Callable] = None,
+    ) -> None:
+        """
+        Initialize the dataset.
+
+        Parameters:
+        -----------
+        root: str
+            the folder containing the dataset.
+        ref: Optional[Tensor]
+            the reference value used to mask features.
+        transform: Optional[Callable]
+            a function/transform that takes in an PIL image and returns a transformed version.
+        """
+        super(BBBC041Dataset, self).__init__(root, transform)
+        self.ref = ref
+        if self.ref is not None:
+            self.h, self.w = self.ref.size(1), self.ref.size(2)
+            self.ref_patch = (
+                self.ref.unfold(1, self.h // 2, self.h // 2)
+                .unfold(2, self.w // 2, self.w // 2)
+                .flatten(start_dim=1, end_dim=2)
+            )
+
+    def cond(self, x: Tensor, C: set) -> Tensor:
+        """
+        A function that defines the (un)conditional distribution to mask features.
+        Given a batch of samples `x` and a set of features `C` to condition on, this
+        function masks the features not in `C` with their conditional distribution.
+
+        Parameters:
+        -----------
+        x: torch.Tensor
+            the input batch to mask.
+        C: set
+            the set of features to condition on.
+        """
+        if self.ref is None:
+            raise ValueError("Missing reference value to mask features.")
+
+        x_patch = (
+            x.unfold(2, self.h // 2, self.h // 2)
+            .unfold(3, self.w // 2, self.w // 2)
+            .flatten(start_dim=2, end_dim=3)
+        )
+        not_C = list(set(range(4)) - C)
+        x_patch[:, :, not_C] = self.ref_patch[:, not_C]
+
+        x = x_patch.view(
+            x.size(0), x.size(1), x_patch.size(2), self.h // 2 * self.w // 2
+        )
+        x = x.unfold(3, self.w // 2, self.w // 2)
+        x = x.view(x.size(0), x.size(1), 2, 2, self.h // 2, self.w // 2)
+        x = x.permute(0, 1, 2, 4, 3, 5).contiguous()
+        x = x.view(x.size(0), x.size(1), 2 * self.h // 2, 2 * self.w // 2)
         return x

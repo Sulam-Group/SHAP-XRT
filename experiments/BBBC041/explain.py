@@ -1,14 +1,27 @@
 import os
+import argparse
 import torch
 import torch.nn as nn
-import numpy as np
 import pickle
 import time
 import hshap
+from torchvision.datasets import ImageFolder
 from torchvision import transforms
-from PIL import Image
+from torch.utils.data import DataLoader
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+parser = argparse.ArgumentParser()
+parser.add_argument("--s", type=int, default=800)
+parser.add_argument("--threshold_mode", type=str, default="absolute")
+parser.add_argument("--threshold", type=int, default=0)
+parser.add_argument("--logit_threshold", type=float, default=0.55)
+args = parser.parse_args()
+
+s = args.s
+threshold_mode = args.threshold_mode
+threshold = args.threshold
+logit_threshold = args.logit_threshold
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "8"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 data_dir = os.path.join("data")
@@ -34,42 +47,49 @@ torch.cuda.empty_cache()
 
 mean = torch.tensor([0.485, 0.456, 0.406])
 std = torch.tensor([0.229, 0.224, 0.225])
-transform = transforms.Compose(
-    [transforms.ToTensor(), transforms.Normalize(mean=mean, std=std)]
-)
+transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean, std)])
+dataset = ImageFolder(os.path.join(trophozoite_dir, "val"), transform)
+image_names = [os.path.basename(x[0]).split(".")[0] for x in dataset.samples]
+dataloader = DataLoader(dataset, batch_size=1, num_workers=4, shuffle=False)
 
 ref = torch.load(os.path.join(explanation_dir, "reference.pt"), map_location=device)
 hexp = hshap.src.Explainer(
     model=model,
     background=ref,
 )
+explainer_dir = os.path.join(
+    explanation_dir, "hexp", str(s), f"{threshold_mode}_{threshold}"
+)
+os.makedirs(explainer_dir, exist_ok=True)
 print("Initialized hshap")
 
-for s in [800, 400]:
-    true_positives = np.load(os.path.join(explanation_dir, "true_positive.npy"))
-    for i, image_path in enumerate(true_positives):
-        image_name = os.path.basename(image_path).split(".")[0]
-        try:
-            image = Image.open(image_path)
-        except:
-            print(f"skipped {i}")
-        image_t = transform(image).to(device)
-        threshold_mode = "relative"
-        threshold_value = 60
+for i, data in enumerate(dataloader):
+    input, _ = data
+
+    input = input.to(device)
+    output = model(input)
+    prediction = output.argmax(dim=1)
+
+    if prediction == 1:
+        image_name = image_names[i]
         t0 = time.time()
         explanation = hexp.explain(
-            image_t,
+            input,
             label=1,
             s=s,
             threshold_mode=threshold_mode,
-            threshold=threshold_value,
-            output_threshold=0.55,
+            threshold=threshold,
+            softmax_activation=True,
+            logit_threshold=logit_threshold,
             batch_size=2,
             binary_map=True,
             return_shaplit=True,
         )
         torch.cuda.empty_cache()
         runtime = round(time.time() - t0, 6)
-        print(f"{i+1}/{len(true_positives)} runtime={runtime:4f} s")
-        with open(os.path.join(explanation_dir, f"{image_name}_{s}.pkl"), "wb") as f:
+        print(f"{i+1}/{len(dataset)} runtime={runtime:4f} s")
+        with open(
+            os.path.join(explainer_dir, f"{image_name}_{logit_threshold}.pkl"),
+            "wb",
+        ) as f:
             pickle.dump(explanation, f)

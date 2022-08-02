@@ -1,13 +1,13 @@
 import torch
 import torch.nn as nn
 import numpy as np
+from torch import Tensor
 from scipy.special import binom
 from itertools import combinations
 from model import SimpleCNN, SimpleFCN
-from shaplit import shaplit
 from torch.utils.data import Dataset, DataLoader
 from torch.optim import Optimizer
-from typing import Tuple
+from typing import Tuple, Callable, Optional
 
 # `wc` is the coefficient of each summand in the Shapley value
 wc = lambda n, c: 1 / binom(n - 1, c) * 1 / n
@@ -150,22 +150,66 @@ def shaplit_power(net: nn.Module, test_dataset: Dataset, alpha: float, K: int) -
     return p
 
 
-def shapley(f, x, j, cond, M=1000):
-    n = x.size(1)
-    N = set(range(n))
+def HRT(
+    f: Callable[[Tensor], Tensor],
+    dataset: Dataset,
+    j: int,
+    n: int,
+    t: Optional[float] = None,
+):
+    """
+    A function that implements the Holdout Randomization Test (HRT) for
+    binary-classification, where the test statistic is the 01 error rate.
 
-    phi = 0
-    S = N - {j}
-    for c in range(len(S) + 1):
-        _wc = wc(n, c)
-        CC = combinations(S, c)
-        for C in CC:
-            C = set(C)
-            C.add(j)
-            f_cui = f(cond(x, C, M))
+    Parameters:
+    -----------
+    f: Callable
+        the model to test.
+    dataset: torch.utils.data.Dataset
+        the test dataset to compute the 01 error rate on.
+    j: int
+        the feature to test importance of.
+    n: int
+        the total number of features in a sample.
+    t: Optiona[float]
+        the test statistic. If `None`, it is computed before performing the test.
+    """
+    # initialize the dataloader for the test dataset
+    dataloader = DataLoader(dataset, batch_size=4, num_workers=4, shuffle=True)
 
-            C.remove(j)
-            f_c = f(cond(x, C, M))
+    # compute the test statistic if it is not provided
+    if t is None:
+        correct = 0
+        for _, data in enumerate(dataloader):
+            input, label = data
 
-            phi += _wc * (f_cui - f_c).mean()
-    return phi
+            input = input.to(dataset.ref.device)
+            label = label.to(dataset.ref.device)
+
+            output = f(input)
+            prediction = output.argmax(dim=1)
+
+            correct += torch.sum(prediction == label)
+        t = 1 - correct / len(dataset)
+
+    # compute the null statistic
+    C = set(range(n)) - {j}
+    correct = 0
+    for _, data in enumerate(dataloader):
+        input, label = data
+
+        input = input.to(dataset.ref.device)
+        label = label.to(dataset.ref.device)
+
+        output = f(dataset.cond(input, C))
+        prediction = output.argmax(dim=1)
+
+        correct += torch.sum(prediction == label)
+    t_tilde = 1 - correct / len(dataset)
+
+    # compute the one-sided p-value
+    p = t >= t_tilde
+    print(
+        f"j = {j}, H_0: f _||_ X_{set([j])} | X_{set(C)}, t = {100*t:.2f}%, t_tilde = {100*t_tilde:.2f}%, p = {int(p)}"
+    )
+    return p

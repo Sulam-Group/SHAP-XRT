@@ -2,7 +2,7 @@ from torch import Tensor
 from typing import Callable
 
 
-def shaplit(
+def SHAPLIT(
     f: Callable[[Tensor], Tensor],
     cond: Callable[[Tensor, set, int], Tensor],
     x: Tensor,

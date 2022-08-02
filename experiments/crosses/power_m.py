@@ -9,7 +9,7 @@ from tqdm import tqdm
 root_dir = "../../"
 sys.path.append(root_dir)
 
-from dataset import Crosses
+from dataset import CrossesDataset
 from utils import batch_size, r, s, d, models, alpha, train, shaplit_power
 
 data_dir = "data"
@@ -31,8 +31,8 @@ for model in models:
         # for 10 independent repetitions
         for i in range(10):
             # initialize training and test datasets
-            train_dataset = Crosses(m, r, s, d, sigma)
-            test_dataset = Crosses(10 * batch_size, r, s, d, sigma)
+            train_dataset = CrossesDataset(m, r, s, d, sigma)
+            test_dataset = CrossesDataset(10 * batch_size, r, s, d, sigma)
 
             # initialize training dataloader
             train_dataloader = DataLoader(
