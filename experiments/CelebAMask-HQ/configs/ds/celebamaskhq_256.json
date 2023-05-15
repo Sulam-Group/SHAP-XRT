@@ -1,0 +1,27 @@
+{
+    "train_micro_batch_size_per_gpu": 8,
+    "optimizer": {
+        "type": "Adam",
+        "params": {
+            "lr": 0.0002,
+            "betas": [
+                0.8,
+                0.9
+            ]
+        }
+    },
+    "scheduler": {
+        "type": "WarmupLR",
+        "params": {
+            "warmup_num_steps": 5000,
+            "warmup_min_lr": 0,
+            "warmup_max_lr": 0.0002
+        }
+    },
+    "gradient_clipping": 1.0,
+    "wandb": {
+        "enabled": true,
+        "team": "jacopoteneggi",
+        "project": "CelebAMask-HQ"
+    }
+}
