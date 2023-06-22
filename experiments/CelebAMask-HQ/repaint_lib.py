@@ -1,6 +1,7 @@
 import os
 import torch
 import itertools
+from skimage.morphology import disk, erosion
 from tqdm import tqdm
 
 
@@ -37,10 +38,15 @@ def get_mask(feature, s):
     s = torch.tensor(s)
     s = s.to(feature.device)
     m = torch.isin(feature, s).float()
+
+    footprint = disk(2)
+    m = m.squeeze()
+    m = erosion(m, footprint)
+    m = torch.from_numpy(m)
     return m
 
 
-def repaint(x0, m, unet, sigmas, checkpoint_dir):
+def repaint(x0, m, score_model, sigmas, checkpoint_dir):
     # initialize random noise
     sigma0 = sigmas[0]
     z = torch.randn_like(x0)
@@ -54,7 +60,7 @@ def repaint(x0, m, unet, sigmas, checkpoint_dir):
         x_known = x0 + sigma_next[:, None, None, None] * z
 
         # denoise unknown part
-        model_output = unet(x, sigma.repeat(x.size(0))).sample
+        model_output = score_model(x, sigma.repeat(x.size(0)))
 
         diffusion = torch.sqrt(sigma**2 - sigma_next**2)
         diffusion = diffusion.flatten()

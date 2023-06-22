@@ -1,8 +1,7 @@
-import os
 import torch
 from torch import Tensor
 from torch.utils.data import Dataset
-from torch.distributions import MultivariateNormal
+from torch.distributions import MultivariateNormal, Normal, Uniform
 from torchvision.datasets import ImageFolder
 from typing import Tuple, Callable, Optional
 
@@ -172,8 +171,8 @@ class BooleanDataset(Dataset):
         self.k = k
         self.n = n
         # define signal and noise
-        self._signal = torch.distributions.Normal(4, 1)
-        self._noise = torch.distributions.Normal(0, 1)
+        self._signal = Normal(4, 1)
+        self._noise = Normal(0, 1)
         # generate noise
         self.data = self._noise.sample((m, n * k))
         # generate signal
@@ -289,4 +288,115 @@ class BBBC041Dataset(ImageFolder):
         x = x.view(x.size(0), x.size(1), 2, 2, self.h // 2, self.w // 2)
         x = x.permute(0, 1, 2, 4, 3, 5).contiguous()
         x = x.view(x.size(0), x.size(1), 2 * self.h // 2, 2 * self.w // 2)
+        return x
+
+
+class SimpleSigmoidDataset(Dataset):
+    def __init__(self, m):
+        self.m = m
+
+        mu1 = mu2 = 0.0
+        sigma1 = sigma2 = 5.0
+        self._x1, self._x2 = Uniform(-6, 6), Uniform(-6, 6)
+
+        x1, x2 = self._x1.sample((self.m,)), self._x2.sample((self.m,))
+        self.data = torch.stack((x1, x2), dim=1)
+
+    def __len__(self):
+        return self.m
+
+    def __getitem__(self, idx):
+        return self.data[idx]
+
+    def cond(self, x, C, M):
+        _x1, _x2 = x
+        if 0 not in C:
+            x1 = self._x1.sample((M,))
+        if 0 in C:
+            x1 = _x1.repeat((M,))
+        if 1 not in C:
+            x2 = self._x2.sample((M,))
+        if 1 in C:
+            x2 = _x2.repeat((M,))
+
+        x = torch.stack((x1, x2), dim=1)
+        return x
+
+
+class SigmoidDataset(Dataset):
+    def __init__(self, m: int):
+        self.m = m
+
+        mu1 = mu2 = 0.0
+        mu3 = mu4 = 0.0
+        rho1, rho2 = 0.2, -0.2
+        sigma1 = sigma2 = 3.0
+        sigma3 = sigma4 = 3.0
+        cov1, cov2 = torch.tensor(
+            [
+                [sigma1**2, rho1 * sigma1 * sigma2],
+                [rho1 * sigma1 * sigma2, sigma2**2],
+            ]
+        ), torch.tensor(
+            [
+                [sigma3**2, rho2 * sigma3 * sigma4],
+                [rho2 * sigma3 * sigma4, sigma4**2],
+            ]
+        )
+
+        self._x1x2, self._x3x4 = MultivariateNormal(
+            torch.tensor([mu1, mu2]), cov1
+        ), MultivariateNormal(torch.tensor([mu3, mu4]), cov2)
+
+        self._cond1 = lambda x2: Normal(
+            mu1 + sigma1 / sigma2 * rho1 * (x2 - mu2), (1 - rho1**2) * sigma1**2
+        )
+        self._cond2 = lambda x1: Normal(
+            mu2 + sigma2 / sigma1 * rho1 * (x1 - mu1), (1 - rho1**2) * sigma2**2
+        )
+        self._cond3 = lambda x4: Normal(
+            mu3 + sigma3 / sigma4 * rho2 * (x4 - mu4), (1 - rho2**2) * sigma3**2
+        )
+        self._cond4 = lambda x3: Normal(
+            mu4 + sigma4 / sigma3 * rho2 * (x3 - mu3), (1 - rho2**2) * sigma4**2
+        )
+
+        x1x2, x3x4 = self._x1x2.sample((self.m,)), self._x3x4.sample((self.m,))
+        self.data = torch.cat((x1x2, x3x4), dim=1)
+
+    def __len__(self):
+        return self.m
+
+    def __getitem__(self, idx):
+        return self.data[idx]
+
+    def cond(self, x, C, M):
+        _x1, _x2, _x3, _x4 = x
+        if 0 not in C and 1 not in C:
+            x1x2 = self._x1x2.sample((M,))
+        if 0 in C and 1 in C:
+            x1x2 = torch.tensor([_x1, _x2]).repeat(M, 1)
+        if 0 in C and 1 not in C:
+            x1 = _x1.repeat((M,))
+            x2 = self._cond2(_x1).sample((M,))
+            x1x2 = torch.stack((x1, x2), dim=1)
+        if 0 not in C and 1 in C:
+            x1 = self._cond1(_x2).sample((M,))
+            x2 = _x2.repeat(M)
+            x1x2 = torch.stack((x1, x2), dim=1)
+
+        if 2 not in C and 3 not in C:
+            x3x4 = self._x3x4.sample((M,))
+        if 2 in C and 3 in C:
+            x3x4 = torch.tensor([_x3, _x4]).repeat(M, 1)
+        if 2 in C and 3 not in C:
+            x3 = _x3.repeat((M,))
+            x4 = self._cond4(_x3).sample((M,))
+            x3x4 = torch.stack((x3, x4), dim=1)
+        if 2 not in C and 3 in C:
+            x3 = self._cond3(_x4).sample((M,))
+            x4 = _x4.repeat(M)
+            x3x4 = torch.stack((x3, x4), dim=1)
+
+        x = torch.cat((x1x2, x3x4), dim=1)
         return x

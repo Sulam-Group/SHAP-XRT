@@ -12,7 +12,7 @@ from tqdm import tqdm
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-model_dir = os.path.join("checkpoints", "classifier")
+model_dir = os.path.join("checkpoints")
 os.makedirs(model_dir, exist_ok=True)
 
 augmentation = t.Compose(
@@ -92,7 +92,7 @@ for _ in range(num_epochs):
 
             if val_accuracy > best_model_accuracy:
                 best_model_accuracy = val_accuracy
-                torch.save(model.state_dict(), os.path.join(model_dir, "model.pt"))
+                torch.save(model.state_dict(), os.path.join(model_dir, "classifier.pt"))
 
             wandb.log(
                 {

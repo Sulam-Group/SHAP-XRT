@@ -1,66 +1,52 @@
+# coding=utf-8
+# Copyright 2020 The Google Research Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Lint as: python3
+"""Training NCSN++ on Church with VE SDE."""
+
+from configs.default_lsun_configs import get_default_configs
+
 import os
-import ml_collections
 
 
 def get_config():
-    config = ml_collections.ConfigDict()
-    config.name = name = os.path.basename(__file__.split(".")[0])
-    config.deepspeed_config = os.path.join("configs", "ds", f"{name}.json")
+    config = get_default_configs()
+    config.deepspeed_config = os.path.join(
+        "configs", "ds", "celebamaskhq_256_ncsnpp_continuous.json"
+    )
     # training
-    config.training = training = ml_collections.ConfigDict()
-    config.training.batch_size = 64
-    training.n_iters = 2400001
-    training.snapshot_freq = 50000
-    training.log_freq = 50
-    training.eval_freq = 100
-
-    training.snapshot_freq_for_preemption = 5000
-
-    training.snapshot_sampling = True
-    training.likelihood_weighting = False
+    training = config.training
     training.sde = "vesde"
     training.continuous = True
-    training.reduce_mean = False
 
     # sampling
-    config.sampling = sampling = ml_collections.ConfigDict()
-    sampling.n_steps_each = 1
-    sampling.noise_removal = True
-    sampling.probability_flow = False
-    sampling.snr = 0.075
+    sampling = config.sampling
     sampling.method = "pc"
     sampling.predictor = "reverse_diffusion"
     sampling.corrector = "langevin"
 
-    # evaluation
-    config.eval = evaluate = ml_collections.ConfigDict()
-    evaluate.begin_ckpt = 50
-    evaluate.end_ckpt = 96
-    evaluate.batch_size = 512
-    evaluate.enable_sampling = True
-    evaluate.num_samples = 50000
-    evaluate.enable_loss = True
-    evaluate.enable_bpd = False
-    evaluate.bpd_dataset = "test"
-
     # data
-    config.data = data = ml_collections.ConfigDict()
-    data.dataset = "CelebAMask-HQ"
+    data = config.data
+    data.dataset = "CelebAMaskHQ"
     data.image_size = 256
-    data.centered = False
-    data.num_channels = 3
 
     # model
-    config.model = model = ml_collections.ConfigDict()
+    model = config.model
     model.name = "ncsnpp"
     model.sigma_max = 348
-    model.sigma_min = 0.01
     model.scale_by_sigma = True
-    model.num_scales = 2000
-    model.beta_min = 0.1
-    model.beta_max = 20.0
-    model.dropout = 0.0
-    model.embedding_type = "fourier"
     model.ema_rate = 0.999
     model.normalization = "GroupNorm"
     model.nonlinearity = "swish"
@@ -81,15 +67,5 @@ def get_config():
     model.init_scale = 0.0
     model.fourier_scale = 16
     model.conv_size = 3
-
-    # optimization
-    config.optim = optim = ml_collections.ConfigDict()
-    optim.weight_decay = 0
-    optim.optimizer = "Adam"
-    optim.lr = 2e-4
-    optim.beta1 = 0.9
-    optim.eps = 1e-8
-    optim.warmup = 5000
-    optim.grad_clip = 1.0
 
     return config

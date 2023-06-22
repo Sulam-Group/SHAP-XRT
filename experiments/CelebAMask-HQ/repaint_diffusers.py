@@ -101,7 +101,6 @@ def repaint(rank, world_size, workdir):
 
             m = m.repeat(sampling_batch_size, 1, 1, 1)
             x = repaint_lib.repaint(x0, m, unet, sigmas, s_checkpoint_repaint_dir)
-
             torch.save(x.cpu(), os.path.join(s_repaint_dir, "repainted.pt"))
 
 

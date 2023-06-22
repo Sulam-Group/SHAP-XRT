@@ -267,7 +267,7 @@ class VESDE(SDE):
         adjacent_sigma = torch.where(
             timestep == 0,
             torch.zeros_like(t),
-            self.discrete_sigmas[timestep - 1].to(t.device),
+            self.discrete_sigmas.to(t.device)[timestep - 1],
         )
         f = torch.zeros_like(x)
         G = torch.sqrt(sigma**2 - adjacent_sigma**2)
