@@ -1,15 +1,17 @@
+from typing import Callable
+
 import numpy as np
 import torch
 from torch import Tensor
-from typing import Callable
+
 from .utils import (
     hshap_features,
+    mask_features_,
+    mask_input_,
+    mask_map_,
     shapley_matrix,
     shaplit_matrix,
     shaplit_sets,
-    mask_input_,
-    mask_features_,
-    mask_map_,
 )
 
 

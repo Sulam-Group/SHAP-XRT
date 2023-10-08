@@ -1,10 +1,11 @@
 import os
+
 import numpy as np
 import torch
 import torch.nn as nn
-from torchvision.datasets import ImageFolder
-from torchvision import transforms
 from torch.utils.data import DataLoader
+from torchvision import transforms
+from torchvision.datasets import ImageFolder
 from tqdm import tqdm
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "8"

@@ -1,12 +1,14 @@
 import os
-import torch
-import torch.nn as nn
-import numpy as np
 import pickle
 import time
-import hshap
-from torchvision import transforms
+
+import numpy as np
+import torch
+import torch.nn as nn
 from PIL import Image
+from torchvision import transforms
+
+import hshap
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

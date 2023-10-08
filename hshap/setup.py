@@ -1,5 +1,6 @@
 import os
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 
 PACKAGE_NAME = "hshap_shaplit"
 AUTHOR = "Anonymous authors"

@@ -1,10 +1,11 @@
-import os
 import copy
+import os
+
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
-from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
@@ -64,7 +65,6 @@ best_accuracy = 0.0
 for epoch in range(num_epochs):
     print(f"Started epoch {epoch + 1}")
     for op in ops:
-
         if op == "train":
             model.train()
             torch.set_grad_enabled(True)
