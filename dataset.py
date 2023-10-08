@@ -1,8 +1,9 @@
+from typing import Tuple
+
 import torch
 from torch import Tensor
-from torch.utils.data import Dataset
 from torch.distributions import MultivariateNormal
-from typing import Tuple
+from torch.utils.data import Dataset
 
 
 def signal(d: int) -> Tensor:

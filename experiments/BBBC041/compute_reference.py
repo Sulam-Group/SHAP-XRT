@@ -1,7 +1,8 @@
 import os
+
 import torch
-from torchvision.datasets import ImageFolder
 from torchvision import transforms
+from torchvision.datasets import ImageFolder
 
 data_dir = "data"
 trophozoite_dir = os.path.join(data_dir, "trophozoite")

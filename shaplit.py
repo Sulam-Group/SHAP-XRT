@@ -1,5 +1,6 @@
-from torch import Tensor
 from typing import Callable
+
+from torch import Tensor
 
 
 def shaplit(

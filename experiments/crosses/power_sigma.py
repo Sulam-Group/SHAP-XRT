@@ -1,7 +1,8 @@
 import os
 import sys
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -10,7 +11,7 @@ root_dir = "../../"
 sys.path.append(root_dir)
 
 from dataset import Crosses
-from utils import batch_size, r, s, d, models, alpha, train, shaplit_power
+from utils import alpha, batch_size, d, models, r, s, shaplit_power, train
 
 data_dir = "data"
 os.makedirs(data_dir, exist_ok=True)

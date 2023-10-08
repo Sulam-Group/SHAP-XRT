@@ -1,13 +1,15 @@
+from itertools import combinations
+from typing import Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
 from scipy.special import binom
-from itertools import combinations
+from torch.optim import Optimizer
+from torch.utils.data import DataLoader, Dataset
+
 from model import SimpleCNN, SimpleFCN
 from shaplit import shaplit
-from torch.utils.data import Dataset, DataLoader
-from torch.optim import Optimizer
-from typing import Tuple
 
 # `wc` is the coefficient of each summand in the Shapley value
 wc = lambda n, c: 1 / binom(n - 1, c) * 1 / n
