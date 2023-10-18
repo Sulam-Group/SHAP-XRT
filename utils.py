@@ -9,7 +9,7 @@ from torch.optim import Optimizer
 from torch.utils.data import DataLoader, Dataset
 
 from model import SimpleCNN, SimpleFCN
-from shaplit import shaplit
+from shapxrt import shapxrt
 
 # `wc` is the coefficient of each summand in the Shapley value
 wc = lambda n, c: 1 / binom(n - 1, c) * 1 / n

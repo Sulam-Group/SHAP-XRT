@@ -3,7 +3,7 @@ from typing import Callable
 from torch import Tensor
 
 
-def shaplit(
+def shapxrt(
     f: Callable[[Tensor], Tensor],
     cond: Callable[[Tensor, set, int], Tensor],
     x: Tensor,
