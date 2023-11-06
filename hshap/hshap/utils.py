@@ -158,7 +158,7 @@ def mask_map_(
         )
 
 
-def shaplit_sets(gamma: int):
+def shapxrt_sets(gamma: int):
     if gamma != 4:
         raise NotImplementedError("Only implemented for gamma equals to 4")
     else:
@@ -172,7 +172,7 @@ def shaplit_sets(gamma: int):
     return C
 
 
-def shaplit_matrix(gamma: int, device: torch.device) -> Tensor:
+def shapxrt_matrix(gamma: int, device: torch.device) -> Tensor:
     if gamma != 4:
         raise NotImplementedError("Only implemented for gamma equals to 4")
     else:

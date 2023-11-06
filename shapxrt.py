@@ -13,7 +13,7 @@ def shapxrt(
     M: int = 1,
 ):
     """
-    A function that implements the SHAPley Local Independence Test (SHAPLIT), as described
+    A function that implements the SHAPley eXplanation Randomization Test (SHAP-XRT), as described
     in Sec. 3.1 of the paper.
 
     Parameters:

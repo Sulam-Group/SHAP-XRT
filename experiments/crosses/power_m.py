@@ -11,7 +11,7 @@ root_dir = "../../"
 sys.path.append(root_dir)
 
 from dataset import Crosses
-from utils import alpha, batch_size, d, models, r, s, shaplit_power, train
+from utils import alpha, batch_size, d, models, r, s, shapxrt_power, train
 
 data_dir = "data"
 os.makedirs(data_dir, exist_ok=True)
@@ -53,7 +53,7 @@ for model in models:
             net, acc = train(train_dataloader, test_dataset, net, optim, nn.BCELoss())
 
             # estimate the power
-            beta = shaplit_power(net, test_dataset, alpha, K)
+            beta = shapxrt_power(net, test_dataset, alpha, K)
             df.append({"model_name": model_name, "m": m, "beta": beta})
 
 df = pd.DataFrame(df)

@@ -2,9 +2,9 @@ import os
 
 from setuptools import find_packages, setup
 
-PACKAGE_NAME = "hshap_shaplit"
-AUTHOR = "Anonymous authors"
-AUTHOR_EMAIL = "an.author@email.com"
+PACKAGE_NAME = "hshap_shapxrt"
+AUTHOR = "Jacopo Teneggi"
+AUTHOR_EMAIL = "jteneggi@jhu.edu"
 
 PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
 for line in open(os.path.join(PROJECT_PATH, "hshap", "__init__.py")):

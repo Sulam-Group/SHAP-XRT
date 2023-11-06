@@ -1,4 +1,5 @@
 import os
+import argparse
 
 import numpy as np
 import torch
@@ -8,11 +9,18 @@ from torchvision import transforms
 from torchvision.datasets import ImageFolder
 from tqdm import tqdm
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "8"
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+parser = argparse.ArgumentParser()
+parser.add_argument("--gpu", type=str, default="0")
+
+args = parser.parse_args()
+
+os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 data_dir = "data"
 trophozoite_dir = os.path.join(data_dir, "trophozoite")
+explanation_dir = os.path.join("explanations")
+os.makedirs(explanation_dir, exist_ok=True)
 
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
@@ -68,4 +76,4 @@ for i, data in enumerate(tqdm(dataloader)):
 print(f"Test accuracy: {correct.item() / len(dataset)*100:.2f}%")
 print(f"True positive count: {len(true_positive)}")
 print(f"False negative count: {len(false_negative)}")
-np.save(os.path.join("explanations", "true_positive"), true_positive)
+np.save(os.path.join(explanation_dir, "true_positive"), true_positive)

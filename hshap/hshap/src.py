@@ -10,8 +10,8 @@ from .utils import (
     mask_input_,
     mask_map_,
     shapley_matrix,
-    shaplit_matrix,
-    shaplit_sets,
+    shapxrt_matrix,
+    shapxrt_sets,
 )
 
 
@@ -31,8 +31,8 @@ class Explainer:
         self.gamma = 4
         self.features = hshap_features(self.gamma)
         self.W = shapley_matrix(self.gamma, device=background.device)
-        self.M = shaplit_matrix(self.gamma, device=background.device)
-        self.C = shaplit_sets(self.gamma)
+        self.M = shapxrt_matrix(self.gamma, device=background.device)
+        self.C = shapxrt_sets(self.gamma)
 
     def masked_input_(
         self,
@@ -98,7 +98,7 @@ class Explainer:
         binary_map: bool = False,
         roll_row: int = 0,
         roll_column: int = 0,
-        return_shaplit: bool = False,
+        return_shapxrt: bool = False,
         **kwargs,
     ) -> Tensor:
         stop_l = np.log2(min(self.size[1], self.size[2]) / s) + 1
@@ -113,7 +113,7 @@ class Explainer:
         while nodes.shape[1] < stop_l:
             scores = scores.unsqueeze_(1).repeat((1, self.gamma))
             ### START CHANGES ###
-            if return_shaplit:
+            if return_shapxrt:
                 p = torch.zeros_like(scores)
                 p = p.unsqueeze_(2).repeat((1, 1, 2 ** (self.gamma - 1)))
             #### END CHANGES ####
@@ -150,7 +150,7 @@ class Explainer:
                     torch.matmul(F, self.W).squeeze_(1)
                 )
                 ### START CHANGES ###
-                if return_shaplit:
+                if return_shapxrt:
                     for i, _F in enumerate(F.squeeze(1)):
                         _T = ((_F > output_threshold).float())[self.M]
                         p[batch_start_id + i] = (
@@ -186,7 +186,7 @@ class Explainer:
             root_inputs = root_inputs[i]
             scores = scores[i, j]
             ### START CHANGES ###
-            if return_shaplit:
+            if return_shapxrt:
                 p = p[i, j]
             #### END CHANGES ####
 
@@ -204,19 +204,19 @@ class Explainer:
                 saliency_map, shifts=(roll_row, roll_column), dims=(1, 2)
             )
         ### START CHANGES ###
-        if not return_shaplit:
+        if not return_shapxrt:
             if binary_map:
                 return saliency_map, len(_scores)
             else:
                 return saliency_map
         else:
-            shaplit_map = torch.zeros(1, self.size[1], self.size[2])
+            shapxrt_map = torch.zeros(1, self.size[1], self.size[2])
             _p = p.tolist()
             for i, (n, p, c) in enumerate(zip(nodes, _p, root_coords)):
-                mask_map_(map=shaplit_map, path=n[-1], score=i + 1, root_coords=c)
+                mask_map_(map=shapxrt_map, path=n[-1], score=i + 1, root_coords=c)
             _p = [(jj.item(), list(zip(self.C[jj], pp))) for jj, pp in zip(j, _p)]
             if binary_map:
-                return saliency_map, len(_scores), shaplit_map, _p
+                return saliency_map, len(_scores), shapxrt_map, _p
             else:
-                return saliency_map, shaplit_map, _p
+                return saliency_map, shapxrt_map, _p
         #### END CHANGES ####

@@ -79,7 +79,7 @@ def train(
     return net, acc
 
 
-def shaplit_power(net: nn.Module, test_dataset: Dataset, alpha: float, K: int) -> float:
+def shapxrt_power(net: nn.Module, test_dataset: Dataset, alpha: float, K: int) -> float:
     """
     A function to estimate the power of performing conditional independence
     testing through Shapley coefficient in the synthetic image dataset presented

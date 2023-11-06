@@ -24,4 +24,4 @@ _iter = iter(dataloader)
 X, _ = next(_iter)
 ref = X.detach().mean(0)
 
-torch.save(ref, os.path.join("explanations", "reference.pt"))
+torch.save(ref, os.path.join("demo", "reference.pt"))

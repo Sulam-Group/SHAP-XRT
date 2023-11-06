@@ -1,4 +1,5 @@
 import os
+import argparse
 import pickle
 import time
 
@@ -10,13 +11,19 @@ from torchvision import transforms
 
 import hshap
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+parser = argparse.ArgumentParser()
+parser.add_argument("--gpu", type=str, default="0")
+
+args = parser.parse_args()
+
+os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 data_dir = os.path.join("data")
 trophozoite_dir = os.path.join(data_dir, "trophozoite")
 model_dir = os.path.join("pretrained_model")
 explanation_dir = os.path.join("explanations")
+os.makedirs(explanation_dir, exist_ok=True)
 
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
@@ -40,7 +47,7 @@ transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize(mean=mean, std=std)]
 )
 
-ref = torch.load(os.path.join(explanation_dir, "reference.pt"), map_location=device)
+ref = torch.load(os.path.join("demo", "reference.pt"), map_location=device)
 hexp = hshap.src.Explainer(
     model=model,
     background=ref,
@@ -68,7 +75,7 @@ for s in [800, 400]:
             output_threshold=0.55,
             batch_size=2,
             binary_map=True,
-            return_shaplit=True,
+            return_shapxrt=True,
         )
         torch.cuda.empty_cache()
         runtime = round(time.time() - t0, 6)

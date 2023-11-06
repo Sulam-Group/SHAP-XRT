@@ -162,10 +162,8 @@ cython_debug/
 **/**/__pycache__
 env/
 experiments/crosses/data
-experiments/BBBC041/data/
+experiments/BBBC041/data
 experiments/BBBC041/explanations/
 experiments/BBBC041/notebooks
-experiments/CelebA/
-experiments/CelebAMask-HQ/
 old/
 figures
