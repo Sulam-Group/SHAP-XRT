@@ -1,9 +1,10 @@
-import os
-import pandas as pd
-import numpy as np
 import itertools
+import os
 import pickle
+
 import matplotlib.patches as patches
+import numpy as np
+import pandas as pd
 from tqdm import tqdm
 
 root_dir = "../../"

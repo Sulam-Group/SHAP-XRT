@@ -1,12 +1,12 @@
-import os
 import argparse
+import os
 import pickle
 
 import torch
 import torch.nn as nn
+from bbbc041_utils import get_C, get_J
 from PIL import Image
 from torchvision import transforms
-from bbbc041_utils import get_J, get_C
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
